@@ -1,29 +1,31 @@
 window.onload = function () {  
-  var canvas = document.createElement("canvas");
+  /* var canvas = document.createElement("canvas");
   document.body.appendChild(canvas);
   canvas.width = 600
-  canvas.height = 300;
+  canvas.height = 300; */
+  var canvas = document.getElementById("canvas_oscillator");
   var ctx = canvas.getContext("2d");  
   var centerX = canvas.width / 4;
   var centerY = canvas.height / 2;
 
   var is_stimulated = 0;
+  var stim_step = 5;
   var step = 0;
   var converged = false;
   
   var inv_sf = 1/2048;
   
-  var K = 20;
-  var noise_strength = .5;
-  var dbs_strength = .1;
-  var w_mean = 2;
-  var w_std = 0.5;
-  var num_nodes = 10;
+  var K = parseFloat(document.getElementById("K").value);
+  var noise_strength = parseFloat(document.getElementById("noise_strength").value);
+  var dbs_strength = parseFloat(document.getElementById("dbs_strength").value);
+  var w_mean = parseFloat(document.getElementById("w_mean").value);
+  var w_std = parseFloat(document.getElementById("w_std").value);
+  var num_nodes = parseFloat(document.getElementById("num_nodes").value);
 
   var drawAnimation = function() {
     var dbs_patient = document.getElementById("dbs_patient");
     ctx.drawImage(dbs_patient,centerX * 2,centerY / 2.5, 150, 192);
-    if (is_stimulated == 1) {
+    if (is_stimulated == 1 && step % stim_step == 0) {
       var lightning_bolt = document.getElementById("lightning_bolt");
       ctx.drawImage(lightning_bolt, centerX * 2, centerY / 2.5, 51, 60);
     }
@@ -96,21 +98,21 @@ window.onload = function () {
     var sum = getSum(ns);
 
     r = Math.sqrt(Math.pow(sum.sin,2) + Math.pow(sum.cos,2));
-    document.getElementById("r").innerHTML = "r = " + r;
-    document.getElementById("r_value").value = r;
+    //document.getElementById("r").innerHTML = "r = " + r;
+    // document.getElementById("r_value").value = r;
     if (Math.abs(1 - r) < Math.pow(10,-5) && !converged) {
-      document.getElementById("converge").innerHTML = "Converged on step " + step + "!";
+      //document.getElementById("converge").innerHTML = "Converged on step " + step + "!";
       converged = true;
     }
 
     var psi = Math.atan2(sum.sin,sum.cos);
-    document.getElementById("psi").innerHTML = "psi = " + psi;
+    //document.getElementById("psi").innerHTML = "psi = " + psi;
     var newNodes = [];
     for (var x = 0; x < ns.length; x++) {
       var dthdt = ns[x].weight + K * r * Math.sin(psi - ns[x].phase);
       newNodes.push({phase: (ns[x].phase + dthdt * inv_sf 
         + noise_strength * (Math.random() - 0.5) * Math.sqrt(inv_sf) 
-        + dbs_strength * Math.sin(ns[x].phase) * is_stimulated), 
+        + dbs_strength * Math.sin(ns[x].phase) * is_stimulated * (step % stim_step == 0)), 
         weight: ns[x].weight});
       
     }
@@ -160,76 +162,40 @@ window.onload = function () {
   
   var dbs = newDbs();
     
-  var graph_data = [];
+  var r_data = [];
+  var cos_data = []
   var num_data_points = 100;
 
-  var getGraphData = function () {
+  var getGraphData = function (is_r) {
     
-    document.getElementById("data_length").value = graph_data.length;
-    //var sum = getSum(nodes);
-    //var r_value = Math.sqrt(Math.pow(sum.sin,2) + Math.pow(sum.cos,2));
-    var r_value = parseFloat(document.getElementById("r_value").value);
-    graph_data.push(r_value);
-
-    // console.log(graph_data);
+    var sum = getSum(nodes);
+    var graph_data = [];
+    if (is_r) {
+      var r_value = Math.sqrt(Math.pow(sum.sin,2) + Math.pow(sum.cos,2));
+      r_data.push(r_value);
+      graph_data = r_data;
+      //document.getElementById("r_value").value = r_value;
+    }
+    else {
+      cos_data.push(sum.cos);
+      graph_data = cos_data;
+      //document.getElementById("cos_value").value = sum.cos;
+    }
 
     var data_length = graph_data.length;
     var diff = num_data_points - data_length;
 
     var res = [];
-    if (diff > 0) {
-      for (var i = 0; i < graph_data.length; ++i) {
-        if (diff - i > 0) {
-          res.push([i,0.0]);
-        }
-        else {
-          res.push([i + diff, graph_data[i-diff]]);
-        }
-      }
-      console.log(res);
-      return res;
-    }
+    
+   // graph_data = graph_data.slice(Math.max(graph_data.length - num_data_points, 1));
+    
     for (var i = 0; i < num_data_points; ++i) {
       res.push([i, graph_data[i-diff]]);
     }
-    document.getElementById("res_length").value = res.length;
-    console.log(res);
     return res; 
-
-    
-    /* if (graph_data.length > 0)
-        graph_data = graph_data.slice(1);
-
-      // Do a random walk
-
-      while (graph_data.length < num_data_points) {
-
-        var prev = graph_data.length > 0 ? graph_data[graph_data.length - 1] : 50,
-          y = (prev + Math.random()) / 2;
-
-        if (y < 0) {
-          y = 0;
-        } else if (y > 1) {
-          y = 1;
-        }
-
-        graph_data.push(y);
-      }
-
-      // Zip the generated y values with the x values
-
-      var res = [];
-      for (var i = 0; i < graph_data.length; ++i) {
-        res.push([i, graph_data[i]])
-      }
-
-      document.getElementById("data_length").value = graph_data.length;
-      document.getElementById("res_length").value = res.length;
-      console.log(graph_data);
-      return res; */
   };
 
-  var plot = $.plot("#placeholder", [ getGraphData() ], {
+  var r_plot = $.plot("#r_graph", [ getGraphData(true) ], {
     series: {
       shadowSize: 0 // Drawing is faster without shadows
     },
@@ -237,15 +203,32 @@ window.onload = function () {
       min: 0,
       max: 1
     },
-    xaxis: {
-      show: false
-    }
+    xaxes: [{axisLabel: 'Time'},],
+    yaxes: [{position: 'left',
+      axisLabel: 'r'},]
+  }); 
+
+  var cos_plot = $.plot("#cos_graph", [ getGraphData(false) ], {
+    series: {
+      shadowSize: 0 // Drawing is faster without shadows
+    },
+    yaxis: {
+      min: -1,
+      max: 1
+    },
+    axisLabels: {
+      show: true
+    },
+    xaxes: [{axisLabel: 'Time'},],
+    yaxes: [{position: 'left',
+      axisLabel: 'avg cos(theta)'},]
   }); 
 
   var updateGraph = function () {
-    plot.setData([getGraphData()]);
-    plot.draw();
-    // setTimeout(update, updateInterval);
+    cos_plot.setData([getGraphData(false)]);
+    cos_plot.draw();
+    r_plot.setData([getGraphData(true)]);
+    r_plot.draw();
   };
 
   var id = setInterval(function () {
@@ -268,7 +251,7 @@ document.getElementById("reset").addEventListener("click", function () {
   dbs = newDbs();
   step = 0;
   converged = false;
-  document.getElementById("converge").innerHTML = "Hasn't converged yet...";
+  //document.getElementById("converge").innerHTML = "Hasn't converged yet...";
   }, false);
   
 document.getElementById("stimulate").addEventListener("mousedown", function () {

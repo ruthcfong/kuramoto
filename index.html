@@ -2,10 +2,11 @@
 <html>
     <head>
         <title>Kuramoto Model Simulation</title>        
-        <link href="scripts/flot/examples/examples.css" rel="stylesheet" type="text/css">
+        <link href="styles/kuramoto.css" rel="stylesheet" type="text/css">
         <!--[if lte IE 8]><script language="javascript" type="text/javascript" src="scripts/float/excanvas.min.js"></script><![endif]-->
         <script language="javascript" type="text/javascript" src="scripts/flot/jquery.js"></script>
         <script language="javascript" type="text/javascript" src="scripts/flot/jquery.flot.js"></script>
+        <script language="javascript" type="text/javascript" src="scripts/flot/jquery.flot.axislabels.js"></script>
         <script type="text/javascript" src="scripts/kuramoto.js"></script>
     </head>
     <body>
@@ -13,41 +14,48 @@
         <div>
             <p>
               K =
-              <input id="K" value="20" type="number" min="0" step="0.1">
+              <input id="K" value="20" type="number" min="0" step="1">
               Noise Strength = 
-                <input id="noise_strength" value=".5" type="number" min="0" step=".1">
+                <input id="noise_strength" value="1.0" type="number" min="0" step=".5">
               DBS Strength = 
-                <input id="dbs_strength" value=".1" type="number" min="0" step=".01">
+                <input id="dbs_strength" value=".5" type="number" min="0" step=".1">
             </p>
             <p>
               Mean of frequency (in radians) = 
-                <input id="w_mean" value="2" type="number" step="0.05">
+                <input id="w_mean" value="10" type="number" step="1.0">
               Standard Deviation of frequency (in radians) = 
-                <input id="w_std" value="0.0" type="number" step="0.05">
+                <input id="w_std" value="0.1" type="number" step="0.05">
               # of oscillators = 
                 <input id="num_nodes" value="10" type="number" step="5">
+            </p>
+            <p>
+                <button id="reset">reset</button>
+                <button id="stimulate">stimulate</button>
             </p>
         </div>
         <!--<p id="is_stimulated">Is Stimulated? false</p>-->
         <p id="iterations"></p>
-        <p id="r"></p>
+        <!--<p id="r"></p>
         <input id="r_value" value="0.0">
-        <input id="data_length" value="0">
-        <input id="res_length" value="0">
+        <input id="cos_value" value="0.0">
         <p id="psi"></p>
-        <p id="converge">Hasn't converged yet...</p>
-        <p>Update rule: theta_i = theta_i + dt*(w_i + K*r*sin(psi-theta_i)) + noise_strength*N(0,sqrt(dt)) + dbs_strength*sin(theta_i)*u(t)</p>
+        <p id="converge">Hasn't converged yet...</p>-->
+        <p>Update Rule:</p>
+        <p><img src="images/update_rule.gif" align="bottom"></img></p>
         <img src="images/dbs_patient.jpg" alt="DBS Setup" id="dbs_patient" hidden></img>
         <img src="images/lightning_bolt.png" alt="Lightning Bolt" id="lightning_bolt" hidden></img>
-        <div id="content">
+        <div class="left-col">
+            <canvas id="canvas_oscillator" width="600" height="300"></canvas>
+        </div>
+        <div class="center-col">
             <div class="demo-container">
-                <div id="placeholder" class="demo-placeholder" width="100" height="100"></div>
+                <div id="r_graph" class="demo-placeholder"></div>
             </div>
         </div>
-                  <p>
-            <button id="reset">reset</button>
-            <button id="stimulate">stimulate</button>
-          </p>
-
+        <div class="right-col">
+            <div class="demo-container">
+                <div id="cos_graph" class="demo-placeholder"></div>
+            </div>
+        </div>
     </body>
 </html>

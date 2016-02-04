@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=1024, user-scalable=no">
+
+  <title>Modelling Neurons as Kuramoto Oscillators</title>
+
+  <!-- Required stylesheet -->
+  <link rel="stylesheet" media="screen" href="scripts/deck/core/deck.core.css">
+
+  <!-- Extension CSS files go here. Remove or add as needed. -->
+  <link rel="stylesheet" media="screen" href="scripts/deck/extensions/goto/deck.goto.css">
+  <link rel="stylesheet" media="screen" href="scripts/deck/extensions/menu/deck.menu.css">
+  <link rel="stylesheet" media="screen" href="scripts/deck/extensions/navigation/deck.navigation.css">
+  <link rel="stylesheet" media="screen" href="scripts/deck/extensions/status/deck.status.css">
+  <link rel="stylesheet" media="screen" href="scripts/deck/extensions/scale/deck.scale.css">
+
+  <!-- Style theme. More available in /themes/style/ or create your own. -->
+  <link rel="stylesheet" media="screen" href="scripts/deck/themes/style/swiss.css">
+
+  <!-- Transition theme. More available in /themes/transition/ or create your own. -->
+  <link rel="stylesheet" media="screen" href="scripts/deck/themes/transition/horizontal-slide.css">
+
+  <!-- Basic black and white print styles -->
+  <link rel="stylesheet" media="print" href="scripts/deck/core/print.css">
+
+  <!-- Required Modernizr file -->
+  <script src="scripts/deck/modernizr.custom.js"></script>
+
+  <link href='http://fonts.googleapis.com/css?family=Sorts+Mill+Goudy' rel='stylesheet' type='text/css'>
+
+  <style>
+    h1 {
+      font-size: 300%;
+    }
+    
+    body {
+      font-family: 'Sorts Mill Goudy', serif !important;
+    }
+
+    ol li { 
+      font-size: 36px !important;
+    }
+
+    ol li.grayed {
+      opacity: 0.4;
+    }
+
+  </style>
+
+  <script type="text/javascript" src="scripts/tutorial.js"></script>
+</head>
+<body>
+  <div class="deck-container">
+
+    <!-- Begin slides. Just make elements with a class of slide. -->
+
+    <section class="slide">
+      <h1>Modelling Neurons as Kuramoto Oscillators<br/><div style="font-size: 36px; margin-top: 70px">(Hit the spacebar to continue)</div></h1>
+    </section>
+
+    <section class="slide">
+      <h2>How do neurons behave? Neurons...</h2>
+      <ol>
+        <li class="slide">Spike regularly</li>
+        <li class="slide">Spike together (or at least like to)</li>
+        <li class="slide">Spike noisely</li>
+        <li class="slide">Spike responsively (to deep brain stimulation)</li>
+      </ol>
+    </section>
+
+    <section class="slide">
+      <h2>Neuron: A Brief Introduction</h2>
+      <div>
+        <img src="images/neuron_spiking.gif" alt="Neuron Spike" id="neuron_spiking" width="200%"></img>
+        <p align="center">(Source: <a href="http://leavingbio.net/the%20nervous%20system_files/THE%20NERVOUS%20SYSTEM_files/image016.gif">www.leavingbio.net</a>)</p>
+      </div>
+    </section>
+
+    <section class="slide">
+      <h2>1. Neurons spike regularly</h2>
+      <p class="slide">Period = time in between spikes (i.e. 0.3s)</p>
+      <p class="slide">Frequency = 1/Period (i.e. 1/0.3s = 3.33 Hz)</p>
+      <div>
+        <img src="images/neuron_regularly_spiking.gif" alt="Neuron Regularly Spiking" id="neuron_regularly_spiking"></img>
+        <p align="center">(Source: <a href="http://www.whydomath.org/node/HHneuro/images/spikemovie2_compressed.gif">www.whydomath.org</a>)</p>
+      </div>
+    </section>
+    
+    <!--<section class="slide">
+            <canvas id="regularity_canvas" width="600" height="400"></canvas>
+    </section>-->
+  
+
+    <section class="slide">
+      <h1>To be continued.</h1>
+    </section>
+
+    <!-- End slides. -->
+
+    <!-- Begin extension snippets. Add or remove as needed. -->
+
+    <!-- deck.navigation snippet -->
+    <div aria-role="navigation">
+      <a href="#" class="deck-prev-link" title="Previous">&#8592;</a>
+      <a href="#" class="deck-next-link" title="Next">&#8594;</a>
+    </div>
+
+    <!-- deck.status snippet -->
+    <p class="deck-status" aria-role="status">
+      <span class="deck-status-current"></span>
+      /
+      <span class="deck-status-total"></span>
+    </p>
+
+    <!-- deck.goto snippet -->
+    <form action="." method="get" class="goto-form">
+      <label for="goto-slide">Go to slide:</label>
+      <input type="text" name="slidenum" id="goto-slide" list="goto-datalist">
+      <datalist id="goto-datalist"></datalist>
+      <input type="submit" value="Go">
+    </form>
+
+    <!-- End extension snippets. -->
+  </div>
+
+<!-- Required JS files. -->
+<script src="scripts/jquery-1.12.0.min.js"></script>
+<script src="scripts/deck/core/deck.core.js"></script>
+
+<!-- Extension JS files. Add or remove as needed. -->
+<script src="scripts/deck/extensions/menu/deck.menu.js"></script>
+<script src="scripts/deck/extensions/goto/deck.goto.js"></script>
+<script src="scripts/deck/extensions/status/deck.status.js"></script>
+<script src="scripts/deck/extensions/navigation/deck.navigation.js"></script>
+<script src="scripts/deck/extensions/scale/deck.scale.js"></script>
+
+<!-- Initialize the deck. You can put this in an external file if desired. -->
+<script>
+  $(function() {
+    $.deck('.slide');
+  });
+</script>
+
+</body>
+</html>

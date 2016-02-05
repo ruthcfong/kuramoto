@@ -48,6 +48,19 @@
       opacity: 0.4;
     }
 
+    .hide {
+      visibility: hidden;
+    }
+    
+    .left-col {
+      float: left;
+      width: 50%;
+    }
+
+    .right-col {
+      float: left;
+      width: 50%;
+    }
   </style>
 
   <script type="text/javascript" src="scripts/tutorial.js"></script>
@@ -65,7 +78,7 @@
       <h2>How do neurons behave? Neurons...</h2>
       <ol>
         <li class="slide">Spike regularly</li>
-        <li class="slide">Spike together (or at least like to)</li>
+        <li class="slide">Spike together (or at least like to and try to)</li>
         <li class="slide">Spike noisely</li>
         <li class="slide">Spike responsively (to deep brain stimulation)</li>
       </ol>
@@ -81,7 +94,7 @@
 
     <section class="slide">
       <h2>1. Neurons spike regularly</h2>
-      <p class="slide">Period = time in between spikes (i.e. 0.3s)</p>
+      <p class="slide">Period = average time in between spikes (i.e. 0.3s)</p>
       <p class="slide">Frequency = 1/Period (i.e. 1/0.3s = 3.33 Hz)</p>
       <div>
         <img src="images/neuron_regularly_spiking.gif" alt="Neuron Regularly Spiking" id="neuron_regularly_spiking"></img>
@@ -91,15 +104,56 @@
 
     <section class="slide">
       <h2>1. Neurons spike regularly</h2>
+      <p class="slide">Neuron spikes can be represented as an oscillator, with each "lap" around the orbit representing a neuron spiking.</p>
+      <p class="slide">Then, the period of the accompanying sine wave of the oscillator matches the period of the neuron.</p>
       <div>
         <img src="images/oscillator.gif" alt="Oscillator" id="oscillator_gif"></img>
         <p align="center">(Source: <a href="http://i.imgur.com/c9P9FPl.gif">imgur.com</a>)</p>
       </div>
-    </section>    
+    </section>
+
     <section class="slide">
-            <canvas id="regularity_canvas" width="600" height="400"></canvas>
+      <h2>2. Neurons spike together (or at least like to and try to)</h2>
+      <p class="slide"> TODO: explanation for this rule</p>
+      <div align="center">
+        <canvas id="coupled_canvas" width="600" height="400"></canvas>
+      </div>
     </section>
   
+    <section class="slide">
+      <h2>3. Neurons spike noisely</h2>
+      <p class="slide"> TODO</p>
+      <div align="center">
+        <canvas id="noisy_canvas" width="600" height="400"></canvas>
+      </div>
+    </section>
+
+    <section class="slide">
+      <h2>3. Neurons spike noisely</h2>
+      <p class="slide"> TODO</p>
+      <div align="center">
+        <img src="images/noisy_neuron_population.png"></img>
+        <p align="center">(Source: <a href="https://upload.wikimedia.org/wikipedia/commons/thumb/8/8d/SimulationNeuralOscillations.png/400px-SimulationNeuralOscillations.png">wikipedia.com</a>)</p>
+      </div>
+    </section>
+
+
+    <section class="slide">
+      <h2>4. Neurons spike responsively (to deep brain stimulation)</h2>
+      <p class="slide"> TODO</p>
+      <div align="center">
+        <button align="center" id="stimulate">stimulate</button>
+        <div class="left-col">
+          <canvas id="stim_animation_canvas" width="600" height="400"></canvas>
+        </div>
+        <div class="right-col">
+          <canvas id="dbs_canvas" width="600" height="400"></canvas>
+        </div>
+      </div>
+      <img class="hide" src="images/dbs_patient.jpg" alt="DBS Setup" id="dbs_patient" width="1" height="1"></img>
+      <img class="hide" src="images/lightning_bolt.png" alt="Lightning Bolt" id="lightning_bolt" width="1" height="1"></img>
+
+    </section>
 
     <section class="slide">
       <h1>To be continued.</h1>
@@ -116,11 +170,11 @@
     </div>
 
     <!-- deck.status snippet -->
-    <p class="deck-status" aria-role="status">
+    <!--<p class="deck-status" aria-role="status">
       <span class="deck-status-current"></span>
       /
       <span class="deck-status-total"></span>
-    </p>
+    </p>-->
 
     <!-- deck.goto snippet -->
     <form action="." method="get" class="goto-form">

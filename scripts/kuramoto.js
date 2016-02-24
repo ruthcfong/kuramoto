@@ -8,8 +8,11 @@ window.onload = function () {
   var centerX = canvas.width / 4;
   var centerY = canvas.height / 2;
 
+  var is_autostimulated = false;
+  var step_pulse = 0;
   var is_stimulated = 0;
-  var stim_step = 5;
+  var stim_step = 10;
+  var num_pulses = 6;
   var step = 0;
   var converged = false;
   
@@ -21,6 +24,10 @@ window.onload = function () {
   var w_mean = parseFloat(document.getElementById("w_mean").value);
   var w_std = parseFloat(document.getElementById("w_std").value);
   var num_nodes = parseFloat(document.getElementById("num_nodes").value);
+
+  var modulo = function(x, y) {
+    return ((x % y) + y ) % y;
+  }
 
   var drawAnimation = function() {
     var dbs_patient = document.getElementById("dbs_patient");
@@ -106,15 +113,33 @@ window.onload = function () {
     }
 
     var psi = Math.atan2(sum.sin,sum.cos);
+    if (is_autostimulated) {
+      var phase = Math.floor(modulo(psi, 2*Math.PI) / (2*Math.PI) * 12);
+      if (is_stimulated && step_pulse >= num_pulses) {
+        is_stimulated = false;
+        step_pulse = 0;
+      }
+
+      if (phase == 0) {
+        is_stimulated = true;
+      }
+
+      if (step % stim_step == 0) {
+        if (is_stimulated) {
+          step_pulse++;
+        }
+      }
+
+      console.log(step_pulse);
+    }
     //document.getElementById("psi").innerHTML = "psi = " + psi;
     var newNodes = [];
     for (var x = 0; x < ns.length; x++) {
       var dthdt = ns[x].weight + K * r * Math.sin(psi - ns[x].phase);
       newNodes.push({phase: (ns[x].phase + dthdt * inv_sf 
-        + noise_strength * (Math.random() - 0.5) * Math.sqrt(inv_sf) 
-        + dbs_strength * Math.sin(ns[x].phase) * is_stimulated * (step % stim_step == 0)), 
-        weight: ns[x].weight});
-      
+      + noise_strength * (Math.random() - 0.5) * Math.sqrt(inv_sf) 
+      + dbs_strength * Math.sin(ns[x].phase) * is_stimulated * (step % stim_step == 0)), 
+      weight: ns[x].weight});
     }
     return newNodes;
   };
@@ -163,24 +188,37 @@ window.onload = function () {
   var dbs = newDbs();
     
   var r_data = [];
-  var cos_data = []
+  var cos_data = [];
+  var phase_data = [];
   var num_data_points = 100;
 
-  var getGraphData = function (is_r) {
+  var getGraphData = function (graph_type) {
     
     var sum = getSum(nodes);
     var graph_data = [];
-    if (is_r) {
-      var r_value = Math.sqrt(Math.pow(sum.sin,2) + Math.pow(sum.cos,2));
-      r_data.push(r_value);
-      graph_data = r_data;
-      //document.getElementById("r_value").value = r_value;
+    
+    switch (graph_type) {
+      case "r":
+        var r_value = Math.sqrt(Math.pow(sum.sin,2) + Math.pow(sum.cos,2));
+        r_data.push(r_value);
+        graph_data = r_data;
+        //document.getElementById("r_value").value = r_value;
+        break;
+      case "tremor":
+        cos_data.push(sum.cos);
+        graph_data = cos_data;
+        //document.getElementById("cos_value").value = sum.cos;
+        break;
+      case "phase":
+        var psi = Math.atan2(sum.sin,sum.cos);
+        var phase = modulo(psi,2*Math.PI);
+        phase_data.push(phase);
+        graph_data = phase_data;
+        break;
+      default:
+        break;
     }
-    else {
-      cos_data.push(sum.cos);
-      graph_data = cos_data;
-      //document.getElementById("cos_value").value = sum.cos;
-    }
+    
 
     var data_length = graph_data.length;
     var diff = num_data_points - data_length;
@@ -195,7 +233,7 @@ window.onload = function () {
     return res; 
   };
 
-  var r_plot = $.plot("#r_graph", [ getGraphData(true) ], {
+  var r_plot = $.plot("#r_graph", [ getGraphData("r") ], {
     series: {
       shadowSize: 0 // Drawing is faster without shadows
     },
@@ -208,7 +246,7 @@ window.onload = function () {
       axisLabel: 'r'},]
   }); 
 
-  var cos_plot = $.plot("#cos_graph", [ getGraphData(false) ], {
+  var cos_plot = $.plot("#cos_graph", [ getGraphData("tremor") ], {
     series: {
       shadowSize: 0 // Drawing is faster without shadows
     },
@@ -224,11 +262,29 @@ window.onload = function () {
       axisLabel: 'avg cos(theta)'},]
   }); 
 
+  var phase_plot = $.plot("#phase_graph", [ getGraphData("phase") ], {
+    series: {
+      shadowSize: 0 // Drawing is faster without shadows
+    },
+    yaxis: {
+      min: 0,
+      max: 2*Math.PI
+    },
+    axisLabels: {
+      show: true
+    },
+    xaxes: [{axisLabel: 'Time'},],
+    yaxes: [{position: 'left',
+      axisLabel: 'Phase'},]
+  }); 
+
   var updateGraph = function () {
-    cos_plot.setData([getGraphData(false)]);
+    cos_plot.setData([getGraphData("tremor")]);
     cos_plot.draw();
-    r_plot.setData([getGraphData(true)]);
+    r_plot.setData([getGraphData("r")]);
     r_plot.draw();
+    phase_plot.setData([getGraphData("phase")]);
+    phase_plot.draw();
   };
 
   var id = setInterval(function () {
@@ -240,31 +296,43 @@ window.onload = function () {
     document.getElementById("iterations").innerHTML = "Step: " + step++;
   }, 1);
   
-document.getElementById("reset").addEventListener("click", function () {
-  K = parseFloat(document.getElementById("K").value);
-  noise_strength = parseFloat(document.getElementById("noise_strength").value);
-  dbs_strength = parseFloat(document.getElementById("dbs_strength").value);
-  w_mean = parseFloat(document.getElementById("w_mean").value);
-  w_std = parseFloat(document.getElementById("w_std").value);
-  num_nodes = parseFloat(document.getElementById("num_nodes").value);
-  nodes = newNodes();
-  dbs = newDbs();
-  step = 0;
-  converged = false;
-  //document.getElementById("converge").innerHTML = "Hasn't converged yet...";
+  document.getElementById("reset").addEventListener("click", function () {
+    K = parseFloat(document.getElementById("K").value);
+    noise_strength = parseFloat(document.getElementById("noise_strength").value);
+    dbs_strength = parseFloat(document.getElementById("dbs_strength").value);
+    w_mean = parseFloat(document.getElementById("w_mean").value);
+    w_std = parseFloat(document.getElementById("w_std").value);
+    num_nodes = parseFloat(document.getElementById("num_nodes").value);
+    nodes = newNodes();
+    dbs = newDbs();
+    step = 0;
+    converged = false;
+    //document.getElementById("converge").innerHTML = "Hasn't converged yet...";
+    }, false);
+    
+  document.getElementById("stimulate").addEventListener("mousedown", function () {
+    is_stimulated = 1;
+    var b_is = (is_stimulated == 1) ? true : false;
+    document.getElementById("is_stimulated").innerHTML = "Is Stimulated? " + b_is;
   }, false);
-  
-document.getElementById("stimulate").addEventListener("mousedown", function () {
-  is_stimulated = 1;
-  var b_is = (is_stimulated == 1) ? true : false;
-  document.getElementById("is_stimulated").innerHTML = "Is Stimulated? " + b_is;
-}, false);
-  
-document.getElementById("stimulate").addEventListener("mouseup", function () {
-  is_stimulated = 0;
-  var b_is = (is_stimulated == 1) ? true : false;
-  document.getElementById("is_stimulated").innerHTML = "Is Stimulated? " + b_is;
-}, false);
+    
+  document.getElementById("stimulate").addEventListener("mouseup", function () {
+    is_stimulated = 0;
+    var b_is = (is_stimulated == 1) ? true : false;
+    document.getElementById("is_stimulated").innerHTML = "Is Stimulated? " + b_is;
+  }, false);
+
+  document.getElementById("autostimulate").addEventListener("click", function () {
+    if (document.getElementById("autostimulate").checked) {
+      document.getElementById("stimulate").disabled = true;
+      is_autostimulated = true;
+    }
+    else {
+      document.getElementById("stimulate").disabled = false;
+      is_autostimulated = false;
+      is_stimulated = false;
+    }
+  }, false);
 
 };
 

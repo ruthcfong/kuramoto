@@ -11,19 +11,35 @@ window.onload = function () {
   var is_autostimulated = false;
   var step_pulse = 0;
   var is_stimulated = 0;
-  var stim_step = 10;
-  var num_pulses = 6;
   var step = 0;
   var converged = false;
   
-  var inv_sf = 1/2048;
-  
+  var updateStimOptions = function() {
+    var stim_options = document.getElementsByName('stim_option');
+    for(var i = 0; i < stim_options.length; i++){
+        if(stim_options[i].checked){
+            stim_option = stim_options[i].value;
+            console.log(stim_option);
+            return;
+        }
+    }
+  };
+
   var K = parseFloat(document.getElementById("K").value);
   var noise_strength = parseFloat(document.getElementById("noise_strength").value);
   var dbs_strength = parseFloat(document.getElementById("dbs_strength").value);
   var w_mean = parseFloat(document.getElementById("w_mean").value);
   var w_std = parseFloat(document.getElementById("w_std").value);
   var num_nodes = parseFloat(document.getElementById("num_nodes").value);
+  var sampling_freq = parseFloat(document.getElementById("sampling_freq").value);
+  var pulse_freq = parseFloat(document.getElementById("pulse_freq").value);
+  var num_pulses = parseFloat(document.getElementById("num_pulses").value);
+  var phase_to_stim = parseFloat(document.getElementById("phase_to_stim").value);
+  var stim_option;
+  updateStimOptions();
+
+  var stim_step = Math.floor(sampling_freq/pulse_freq);
+  var inv_sf = 1/sampling_freq;
 
   var modulo = function(x, y) {
     return ((x % y) + y ) % y;
@@ -114,13 +130,13 @@ window.onload = function () {
 
     var psi = Math.atan2(sum.sin,sum.cos);
     if (is_autostimulated) {
-      var phase = Math.floor(modulo(psi, 2*Math.PI) / (2*Math.PI) * 12);
+      var phase = modulo(psi, 2*Math.PI);
       if (is_stimulated && step_pulse >= num_pulses) {
         is_stimulated = false;
         step_pulse = 0;
       }
 
-      if (phase == 0) {
+      if (Math.abs(phase-phase_to_stim) < 0.01) {
         is_stimulated = true;
       }
 
@@ -130,7 +146,6 @@ window.onload = function () {
         }
       }
 
-      console.log(step_pulse);
     }
     //document.getElementById("psi").innerHTML = "psi = " + psi;
     var newNodes = [];
@@ -138,8 +153,9 @@ window.onload = function () {
       var dthdt = ns[x].weight + K * r * Math.sin(psi - ns[x].phase);
       newNodes.push({phase: (ns[x].phase + dthdt * inv_sf 
       + noise_strength * (Math.random() - 0.5) * Math.sqrt(inv_sf) 
-      + dbs_strength * Math.sin(ns[x].phase) * is_stimulated * (step % stim_step == 0)), 
-      weight: ns[x].weight});
+      + ns[x].dbs_strength * dbs_strength * Math.sin(ns[x].phase) * is_stimulated * (step % stim_step == 0)), 
+      weight: ns[x].weight,
+      dbs_strength: ns[x].dbs_strength});
     }
     return newNodes;
   };
@@ -167,13 +183,30 @@ window.onload = function () {
     }
     return color;*/
     return "purple";
-  }
+  };
   
+  var generateDbsStrength = function(x) {
+    switch (stim_option) {
+      case "half":
+        if (x < num_nodes/2) {
+          return 1;
+        }
+        return 0;
+      case "random":
+        return Math.random();
+      case "uniform":
+      default:
+        return 1;
+    }
+    //return Math.random();
+  };
+
   var newNodes = function () {
     var nodes = [];
     for (var x = 0; x < num_nodes; x++) {
       nodes.push({phase: Math.random() * 2 * Math.PI,
         weight: w_mean + Math.random() * w_std,
+        dbs_strength: generateDbsStrength(x),
         color: getRandomColor()});
     }
     return nodes;
@@ -287,6 +320,38 @@ window.onload = function () {
     phase_plot.draw();
   };
 
+  var clearGraph = function() {
+    r_data = [];
+    cos_data = [];
+    phase_data = [];
+    updateGraph();
+  }
+
+  var resetSim = function() {
+    K = parseFloat(document.getElementById("K").value);
+    noise_strength = parseFloat(document.getElementById("noise_strength").value);
+    dbs_strength = parseFloat(document.getElementById("dbs_strength").value);
+    w_mean = parseFloat(document.getElementById("w_mean").value);
+    w_std = parseFloat(document.getElementById("w_std").value);
+    num_nodes = parseFloat(document.getElementById("num_nodes").value);
+    sampling_freq = parseFloat(document.getElementById("sampling_freq").value);
+    stim_step = Math.floor(sampling_freq/pulse_freq);
+    num_pulses = parseFloat(document.getElementById("num_pulses").value);
+    pulse_freq = parseFloat(document.getElementById("pulse_freq").value);
+    phase_to_stim = parseFloat(document.getElementById("phase_to_stim").value);
+    updateStimOptions();
+    stim_step = Math.floor(sampling_freq/pulse_freq);
+    inv_sf = 1/sampling_freq;
+    is_stimulated = false;
+    step = 0;
+    converged = false;
+    step_pulse = 0;
+
+    nodes = newNodes();
+    dbs = newDbs();
+    clearGraph();
+  }
+
   var id = setInterval(function () {
     drawNodes(nodes);
     nodes = updateNodes(nodes, dbs);
@@ -297,38 +362,33 @@ window.onload = function () {
   }, 1);
   
   document.getElementById("reset").addEventListener("click", function () {
-    K = parseFloat(document.getElementById("K").value);
-    noise_strength = parseFloat(document.getElementById("noise_strength").value);
-    dbs_strength = parseFloat(document.getElementById("dbs_strength").value);
-    w_mean = parseFloat(document.getElementById("w_mean").value);
-    w_std = parseFloat(document.getElementById("w_std").value);
-    num_nodes = parseFloat(document.getElementById("num_nodes").value);
-    nodes = newNodes();
-    dbs = newDbs();
-    step = 0;
-    converged = false;
-    //document.getElementById("converge").innerHTML = "Hasn't converged yet...";
+    resetSim();
     }, false);
     
   document.getElementById("stimulate").addEventListener("mousedown", function () {
     is_stimulated = 1;
     var b_is = (is_stimulated == 1) ? true : false;
-    document.getElementById("is_stimulated").innerHTML = "Is Stimulated? " + b_is;
+    //document.getElementById("is_stimulated").innerHTML = "Is Stimulated? " + b_is;
   }, false);
     
   document.getElementById("stimulate").addEventListener("mouseup", function () {
     is_stimulated = 0;
     var b_is = (is_stimulated == 1) ? true : false;
-    document.getElementById("is_stimulated").innerHTML = "Is Stimulated? " + b_is;
+    //document.getElementById("is_stimulated").innerHTML = "Is Stimulated? " + b_is;
   }, false);
 
   document.getElementById("autostimulate").addEventListener("click", function () {
     if (document.getElementById("autostimulate").checked) {
       document.getElementById("stimulate").disabled = true;
+      document.getElementById("num_pulses").disabled = false;
+      document.getElementById("phase_to_stim").disabled = false;
       is_autostimulated = true;
+      resetSim();
     }
     else {
       document.getElementById("stimulate").disabled = false;
+      document.getElementById("num_pulses").disabled = true;
+      document.getElementById("phase_to_stim").disabled = true;
       is_autostimulated = false;
       is_stimulated = false;
     }

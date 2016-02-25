@@ -16,32 +16,41 @@
               K =
               <input id="K" value="0.9047" type="number" min="0" step="1">
               Noise Strength = 
-                <input id="noise_strength" value="5.4165" type="number" min="0" step=".5">
+                <input id="noise_strength" value="5.4165" type="number" min="0" step=".3">
               DBS Strength = 
                 <input id="dbs_strength" value=".5" type="number" min="0" step=".1">
+              # of oscillators = 
+                <input id="num_nodes" value="10" type="number" step="5">
             </p>
             <p>
               Mean of frequency (in radians) = 
                 <input id="w_mean" value="32.5657" type="number" step="1.0">
               Standard Deviation of frequency (in radians) = 
                 <input id="w_std" value="1.9549" type="number" step="0.05">
-              # of oscillators = 
-                <input id="num_nodes" value="10" type="number" step="5">
             </p>
             <p>
               Sampling Frequency (in Hz) = 
                 <input id="sampling_freq" value="2048" type="number">
               Pulse Frequency (in Hz) =
                 <input id="pulse_freq" value="130" type="number">
+            </p>
+            <p>
+              <b>For auto-stimulate only: </b>
               # of Pulses (for autostimulate) = 
-                <input id="num_pulses" value="6" type="number">
+                <input id="num_pulses" value="6" type="number" disabled>
               Phase to stimulate at (in radians) = 
-                <input id="phase_to_stim" value="0" type="number" step="0.5235"> 
+                <input id="phase_to_stim" value="0" type="number" step="0.5235" disabled> 
+            </p>
+            <p>
+              <b>Stimulation options: </b>
+              <input type="radio" id="stim_option" name="stim_option" value="uniform">Uniform 
+              <input type="radio" id="stim_option" name="stim_option" value="half">Half  
+              <input type="radio" id="stim_option" name="stim_option" value="random" checked>Random 
             </p>
             <p>
                 <button id="reset">reset</button>
                 <button id="stimulate">stimulate</button>
-                <input type="checkbox" id="autostimulate" name="autostimulate" value="autostimulate">auto stimulate<br>
+                <input type="checkbox" id="autostimulate" name="autostimulate" value="autostimulate">auto-stimulate<br>
             </p>
         </div>
         <!--<p id="is_stimulated">Is Stimulated? false</p>-->

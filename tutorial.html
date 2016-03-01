@@ -114,7 +114,15 @@
 
     <section class="slide">
       <h2>2. Neurons spike together (or at least like to and try to)</h2>
-      <p class="slide"> TODO: explanation for this rule</p>
+      <p class="slide">Populations of neurons affect behavior. When enough neurons spike in synchrony, a strong enough signal is propogated to affect behavior (i.e. tremor in Parkinson's disease patients).</p>
+      <div align="center">
+        <img src="images/noisy_neuron_population.png"></img>
+        <p align="center">(Source: <a href="https://upload.wikimedia.org/wikipedia/commons/thumb/8/8d/SimulationNeuralOscillations.png/400px-SimulationNeuralOscillations.png">wikipedia.com</a>)</p>
+      </div>
+    </section>
+    <section class="slide">
+      <h2>2. Neurons spike together (or at least like to and try to)</h2>
+      <p class="slide">We can represent a population of neurons as oscillators and observe their synchrony.</p>
       <div align="center">
         <canvas id="coupled_canvas" width="600" height="400"></canvas>
       </div>
@@ -122,18 +130,18 @@
   
     <section class="slide">
       <h2>3. Neurons spike noisely</h2>
-      <p class="slide"> TODO</p>
+      <p class="slide">Many different factors (i.e. neurotransmitters, upstream neuronal signals, etc.) influence a single neuron's spike. Thus, neurons don't always consistently fire at the exact same rate (and in exact synchrony with other neurons).</p>
       <div align="center">
-        <canvas id="noisy_canvas" width="600" height="400"></canvas>
+        <img src="images/noisy_neuron_population.png"></img>
+        <p align="center">(Source: <a href="https://upload.wikimedia.org/wikipedia/commons/thumb/8/8d/SimulationNeuralOscillations.png/400px-SimulationNeuralOscillations.png">wikipedia.com</a>)</p>
       </div>
     </section>
 
     <section class="slide">
       <h2>3. Neurons spike noisely</h2>
-      <p class="slide"> TODO</p>
+      <p class="slide">Here's how we can represent a noisy population of neurons as oscillators.</p>
       <div align="center">
-        <img src="images/noisy_neuron_population.png"></img>
-        <p align="center">(Source: <a href="https://upload.wikimedia.org/wikipedia/commons/thumb/8/8d/SimulationNeuralOscillations.png/400px-SimulationNeuralOscillations.png">wikipedia.com</a>)</p>
+        <canvas id="noisy_canvas" width="600" height="400"></canvas>
       </div>
     </section>
 
@@ -156,8 +164,15 @@
     </section>
 
     <section class="slide">
-      <h1>To be continued.</h1>
+      <h1>Let's try to dampen PD tremors using this model! <a href="bit.ly/kuramoto">bit.ly/kuramoto</a></h1>
     </section>
+
+    <!-- 
+
+    TODO list:
+    - Add a moving sine wave
+
+    -->
 
     <!-- End slides. -->
 

@@ -8,12 +8,16 @@ window.onload = function () {
   var centerX = canvas.width / 4;
   var centerY = canvas.height / 2;
 
+  var graph_update_steps = 20;
+  var game_steps = 3000;
+  var is_game = false;
   var is_autostimulated = false;
   var step_pulse = 0;
   var is_stimulated = 0;
   var step = 0;
   var converged = false;
-  
+  var points = 0;
+
   var updateStimOptions = function() {
     var stim_options = document.getElementsByName('stim_option');
     for(var i = 0; i < stim_options.length; i++){
@@ -40,6 +44,24 @@ window.onload = function () {
 
   var stim_step = Math.floor(sampling_freq/pulse_freq);
   var inv_sf = 1/sampling_freq;
+
+  var setDefaultValues = function() {
+    document.getElementById("K").value = "2.0";
+    document.getElementById("noise_strength").value = "5.0";
+    document.getElementById("dbs_strength").value = "0.5";
+    document.getElementById("w_mean").value = "32.0";
+    document.getElementById("w_std").value = "2.0";
+    document.getElementById("num_nodes").value = "10";
+    document.getElementById("sampling_freq").value = "2048";
+    document.getElementById("pulse_freq").value = "130";
+    //document.getElementById("num_pulses").value = "6";
+    document.getElementById("num_pulses").disabled = true;
+    //document.getElementById("phase_to_stim").value = "0";
+    document.getElementById("phase_to_stim").disabled = true;
+    document.getElementById("stim_option_uniform").checked = true;
+    document.getElementById("stim_option_half").checked = false;
+    document.getElementById("stim_option_random").checked = false;
+  };
 
   var modulo = function(x, y) {
     return ((x % y) + y ) % y;
@@ -276,7 +298,7 @@ window.onload = function () {
     },
     xaxes: [{axisLabel: 'Time'},],
     yaxes: [{position: 'left',
-      axisLabel: 'r'},]
+      axisLabel: 'Coherence (r)'},]
   }); 
 
   var cos_plot = $.plot("#cos_graph", [ getGraphData("tremor") ], {
@@ -292,7 +314,7 @@ window.onload = function () {
     },
     xaxes: [{axisLabel: 'Time'},],
     yaxes: [{position: 'left',
-      axisLabel: 'avg cos(theta)'},]
+      axisLabel: 'Tremor (avg cos[oscillator])'},]
   }); 
 
   var phase_plot = $.plot("#phase_graph", [ getGraphData("phase") ], {
@@ -308,7 +330,7 @@ window.onload = function () {
     },
     xaxes: [{axisLabel: 'Time'},],
     yaxes: [{position: 'left',
-      axisLabel: 'Phase'},]
+      axisLabel: 'Phase (in radians)'},]
   }); 
 
   var updateGraph = function () {
@@ -344,6 +366,7 @@ window.onload = function () {
     inv_sf = 1/sampling_freq;
     is_stimulated = false;
     step = 0;
+    points = 0;
     converged = false;
     step_pulse = 0;
 
@@ -353,12 +376,25 @@ window.onload = function () {
   }
 
   var id = setInterval(function () {
+    if (is_game && step > game_steps) {
+      document.getElementById("reset").disabled = false;
+      document.getElementById("play").disabled = false;
+      return;
+    }
     drawNodes(nodes);
     nodes = updateNodes(nodes, dbs);
     dbs = updateDbs(dbs);
-    if (step % 20 == 0)
+    if (step % graph_update_steps == 0) {
       updateGraph();
-    document.getElementById("iterations").innerHTML = "Step: " + step++;
+      var sum = getSum(nodes);
+      points += 5*(1-Math.abs(sum.cos));
+    }
+    if (is_game) {
+      document.getElementById("iterations").innerHTML = "Step: " + step++ 
+        + " Points: " + Math.round(points);
+    } else {
+      document.getElementById("iterations").innerHTML = "Step: " + step++;
+    }
   }, 1);
   
   document.getElementById("reset").addEventListener("click", function () {
@@ -375,6 +411,16 @@ window.onload = function () {
     is_stimulated = 0;
     var b_is = (is_stimulated == 1) ? true : false;
     //document.getElementById("is_stimulated").innerHTML = "Is Stimulated? " + b_is;
+  }, false);
+
+  document.getElementById("play").addEventListener("click", function() {
+    is_game = true;
+    is_autostimulated = false;
+    document.getElementById("autostimulate").checked = false;
+    document.getElementById("reset").disabled = true;
+    document.getElementById("play").disabled = true;
+    setDefaultValues();
+    resetSim();
   }, false);
 
   document.getElementById("autostimulate").addEventListener("click", function () {

@@ -73,7 +73,7 @@ window.onload = function () {
   var drawAnimation = function() {
     var dbs_patient = document.getElementById("dbs_patient");
     ctx.drawImage(dbs_patient,centerX * 2,centerY / 2.5, 150, 192);
-    if (is_stimulated == 1) {
+    if (Math.abs(step - last_stim_time*sampling_freq) < 5) {
       var lightning_bolt = document.getElementById("lightning_bolt");
       ctx.drawImage(lightning_bolt, centerX * 2, centerY / 2.5, 51, 60);
     }
@@ -156,25 +156,32 @@ window.onload = function () {
     var psi = Math.atan2(sum.sin,sum.cos);
     if (is_autostimulated) {
       var phase = modulo(psi, 2*Math.PI);
-
       is_stimulated = false;
 
-      if (Math.abs(phase-phase_to_stim) < 0.1 && !in_stim_block) {
-        in_stim_block = true;
-        is_stimulated = 1;
+      if (step/sampling_freq - last_stim_time > stim_step) {
+        if (in_stim_block) {
+          is_stimulated = 1;
+        }
+        else {
+          if (Math.abs(phase-phase_to_stim) < 0.1) {
+            in_stim_block = true;
+            is_stimulated = 1;
+          }
+        }
+
+        if (is_stimulated == 1) {
+          step_pulse++;
+          last_stim_time = step/sampling_freq;
+        }
+
+        if (in_stim_block && step_pulse == num_pulses) {
+          step_pulse = 0;
+          in_stim_block = false;
+        }
       }
-      if (in_stim_block && step/sampling_freq - last_stim_time > stim_step) {
-        is_stimulated = 1;
-      }
-      if (is_stimulated == 1) {
-        step_pulse++;
-        last_stim_time = step/sampling_freq;
-      }
-      if (in_stim_block && step_pulse == num_pulses) {
-        step_pulse = 0;
-        in_stim_block = false;
-      }
+
     }
+
     if (should_stimulate) {
       is_stimulated = 0;
       if (step/sampling_freq - last_stim_time > stim_step) {

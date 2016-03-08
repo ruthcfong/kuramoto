@@ -1,10 +1,37 @@
 window.onload = function () { 
 
+    var coupled_c = "coupled_canvas";
+    var noisy_c = "noisy_canvas";
+    var dbs_c = "dbs_canvas";
+    var animation_c = "stim_animation_canvas";
+
     var drawCircle = function(c, radius) {
         var canvas = document.getElementById(c);
         var ctx = canvas.getContext("2d");
         var centerX = canvas.width / 2;
         var centerY = canvas.height / 2;
+        ctx.textAlign="center";
+        ctx.textBaseline="middle";
+
+        if (c === dbs_c) {
+            // draw bottom-half circle
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, 0, Math.PI);
+            ctx.stroke();
+            ctx.fillStyle = "#90EE90"; // light green
+            ctx.fill();
+            ctx.closePath();
+
+            // draw top-half circle
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, Math.PI, 2 * Math.PI);
+            ctx.stroke();
+            ctx.fillStyle = "#F08080"; // coral
+            ctx.fill();
+            ctx.closePath();
+
+            // for more color names: http://www.w3schools.com/colors/colors_names.asp
+        }
         
         // draw circle
         ctx.beginPath();
@@ -19,20 +46,34 @@ window.onload = function () {
         // off_x = [+5, 0, -10, 0];
         // off_y = [0, +10, 0, -5];
         var off_x = [+5, 0, -10, 0];
-        var off_y = [0, +5, 0, -8];
+        var off_y = [0, +8, 0, -8];
         for (i = 0; i < phases.length; i++) {
-          var x0 = centerX + radius * Math.cos(phases[i]);
-          var y0 = centerY + radius * Math.sin(phases[i]);
-          ctx.beginPath();
-          ctx.moveTo(centerX, centerY);
-          ctx.lineTo(x0, y0);
-          ctx.strokeStyle = "red";
-          ctx.stroke();
-          ctx.closePath();
-          ctx.textAlign="center";
-          ctx.textBaseline="middle";
-          ctx.fillStyle="red";
-          ctx.fillText(labels[i],x0+off_x[i],y0+off_y[i]);
+            var x0 = centerX + radius * Math.cos(phases[i]);
+            var y0 = centerY + radius * Math.sin(phases[i]);
+            ctx.beginPath();
+            ctx.moveTo(centerX, centerY);
+            ctx.lineTo(x0, y0);
+            ctx.strokeStyle = "#D3D3D3";
+            ctx.stroke();
+            ctx.closePath();
+            ctx.beginPath();
+            ctx.fillStyle="red";
+            ctx.fillText(labels[i],x0+off_x[i],y0+off_y[i]);
+            ctx.closePath();
+        }
+
+        if (c === dbs_c) {
+            // add text to bottom-half circle
+            ctx.beginPath();
+            ctx.fillStyle = "black";
+            ctx.fillText("Speed Up",centerX,centerY+radius/2);
+            ctx.closePath();
+
+            // add text to top-half circle
+            ctx.beginPath();
+            ctx.fillStyle = "black";
+            ctx.fillText("Slow Down",centerX,centerY-radius/2);
+            ctx.closePath();
         }
     };
 
@@ -141,16 +182,10 @@ window.onload = function () {
     var step = 0;
     var stim_step = 20;
 
-    var coupled_c = "coupled_canvas";
     var coupled_nodes = newNodes(num_nodes,w_mean,w_std);
-
-    var noisy_c = "noisy_canvas";
     var noisy_nodes = newNodes(num_nodes,w_mean,w_std);
-
-    var dbs_c = "dbs_canvas";
     var dbs_nodes = newNodes(num_nodes,w_mean,w_std);
 
-    var animation_c = "stim_animation_canvas";
     
     var id = setInterval(function () {
         drawNodes(coupled_c, radius, coupled_nodes);
@@ -166,9 +201,22 @@ window.onload = function () {
         step++;
     }, 1);
 
+    document.getElementById(coupled_c).addEventListener("mousedown", function () {
+        coupled_nodes = newNodes(num_nodes,w_mean,w_std);
+    });
+
+    document.getElementById(noisy_c).addEventListener("mousedown", function () {
+        noisy_nodes = newNodes(num_nodes,w_mean,w_std);
+    });
+
+    document.getElementById(dbs_c).addEventListener("mousedown", function () {
+        dbs_nodes = newNodes(num_nodes,w_mean,w_std);
+    });
+
     document.getElementById("stimulate").addEventListener("mousedown", function () {
       is_stimulated = 1;
     }, false);
+
     document.getElementById("stimulate").addEventListener("mouseup", function () {
       is_stimulated = 0;
     }, false);

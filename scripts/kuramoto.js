@@ -20,6 +20,7 @@ window.onload = function () {
   var step = 0;
   var converged = false;
   var points = 0;
+  var r_at_stim_onset = 0;
 
   var updateStimOptions = function() {
     var stim_options = document.getElementsByName('stim_option');
@@ -51,7 +52,7 @@ window.onload = function () {
     document.getElementById("K").value = "2.0";
     document.getElementById("noise_strength").value = "5.0";
     document.getElementById("dbs_strength").value = "1.0";
-    document.getElementById("w_mean").value = "32.0";
+    document.getElementById("w_mean").value = "64.0"; // "32.0";
     document.getElementById("w_std").value = "2.0";
     document.getElementById("num_nodes").value = "10";
     document.getElementById("sampling_freq").value = "2048";
@@ -80,12 +81,33 @@ window.onload = function () {
   }
 
   var drawCircle = function(radius) {
+    ctx.textAlign="center";
+    ctx.textBaseline="middle";
+
     // draw circle
     ctx.beginPath();
     ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
     ctx.strokeStyle = "black";
     ctx.stroke();
     ctx.closePath();
+
+    // draw bottom-half circle
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, radius, 0, Math.PI);
+    ctx.stroke();
+    ctx.fillStyle = "#90EE90"; // light green
+    ctx.fill();
+    ctx.closePath();
+
+    // draw top-half circle
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, radius, Math.PI, 2 * Math.PI);
+    ctx.stroke();
+    ctx.fillStyle = "#F08080"; // coral
+    ctx.fill();
+    ctx.closePath();
+
+    // for more color names: http://www.w3schools.com/colors/colors_names.asp
 
     // draw compass lines
     phases = [0, Math.PI / 2, Math.PI, Math.PI * 3 / 2];
@@ -100,14 +122,26 @@ window.onload = function () {
       ctx.beginPath();
       ctx.moveTo(centerX, centerY);
       ctx.lineTo(x0, y0);
-      ctx.strokeStyle = "red";
+      ctx.strokeStyle = "#778899"; // light slate gray
       ctx.stroke();
       ctx.closePath();
-      ctx.textAlign="center";
-      ctx.textBaseline="middle";
+      ctx.beginPath();
       ctx.fillStyle="red";
       ctx.fillText(labels[i],x0+off_x[i],y0+off_y[i]);
+      ctx.closePath();
     }
+
+    // add text to bottom-half circle
+    ctx.beginPath();
+    ctx.fillStyle = "black";
+    ctx.fillText("Speed Up",centerX,centerY+radius/2);
+    ctx.closePath();
+
+    // add text to top-half circle
+    ctx.beginPath();
+    ctx.fillStyle = "black";
+    ctx.fillText("Slow Down",centerX,centerY-radius/2);
+    ctx.closePath();
   }
   
  
@@ -398,6 +432,7 @@ window.onload = function () {
     num_pulses = parseFloat(document.getElementById("num_pulses").value);
     pulse_freq = parseFloat(document.getElementById("pulse_freq").value);
     phase_to_stim = parseFloat(document.getElementById("phase_to_stim").value);
+    document.getElementById("time").value = "N/A";
     updateStimOptions();
     stim_step = 1/pulse_freq;
     inv_sf = 1/sampling_freq;
@@ -415,6 +450,36 @@ window.onload = function () {
     clearGraph();
   }
 
+  var startTimer = function(duration, display) {
+      var start = Date.now(),
+          diff,
+          minutes,
+          seconds;
+      function timer() {
+          // get the number of seconds that have elapsed since 
+          // startTimer() was called
+          diff = duration - (((Date.now() - start) / 1000) | 0);
+
+          // does the same job as parseInt truncates the float
+          minutes = (diff / 60) | 0;
+          seconds = (diff % 60) | 0;
+
+          minutes = minutes < 10 ? "0" + minutes : minutes;
+          seconds = seconds < 10 ? "0" + seconds : seconds;
+
+          display.textContent = minutes + ":" + seconds; 
+
+          if (diff <= 0) {
+              // add one second so that the count down starts at the full duration
+              // example 05:00 not 04:59
+              start = Date.now() + 1000;
+          }
+      };
+      // we don't want to wait a full second before the timer starts
+      timer();
+      setInterval(timer, 1000);
+  };
+
   var id = setInterval(function () {
     if (is_game && step > game_steps) {
       document.getElementById("reset").disabled = false;
@@ -427,15 +492,11 @@ window.onload = function () {
     if (step % graph_update_steps == 0) {
       updateGraph();
       var sum = getSum(nodes);
-      points += 5*(1-Math.abs(sum.cos));
     }
     if (is_game) {
-      document.getElementById("iterations").innerHTML = "Step: " + step++ 
-        + " Time (in secs): " + Math.round(step/sampling_freq*100)/100 
-        + " Points: " + Math.round(points);
+      document.getElementById("iterations").innerHTML =  "Points: " + Math.round(points);
     } else {
-      document.getElementById("iterations").innerHTML = "Step: " + step++ 
-        + " Time (in secs): " + Math.round(step/sampling_freq*100)/100;
+      document.getElementById("iterations").innerHTML = "Step: " + step++;
     }
   }, 1);
   
@@ -446,10 +507,15 @@ window.onload = function () {
     
   document.getElementById("stimulate").addEventListener("mousedown", function () {
     should_stimulate = true;
+    var sum = getSum(nodes);
+    r_at_stim_onset = Math.sqrt(Math.pow(sum.sin,2) + Math.pow(sum.cos,2));
   }, false);
     
   document.getElementById("stimulate").addEventListener("mouseup", function () {
     should_stimulate = false;
+    var sum = getSum(nodes);
+    var r_at_stim_end = Math.sqrt(Math.pow(sum.sin,2) + Math.pow(sum.cos,2));
+    points += 100*Math.max(r_at_stim_onset - r_at_stim_end, 0);
   }, false);
 
   document.getElementById("play").addEventListener("click", function() {
@@ -461,6 +527,9 @@ window.onload = function () {
     document.getElementById("play").disabled = true;
     setDefaultValues();
     resetSim();
+    var one_min = 60;
+    var display = document.querySelector('#time');
+    startTimer(one_min, display);
   }, false);
 
   document.getElementById("autostimulate").addEventListener("click", function () {

@@ -8,8 +8,10 @@ window.onload = function () {
   var centerX = canvas.width / 4;
   var centerY = canvas.height / 2;
 
+  var time_for_game = 30;
   var graph_update_steps = 20;
-  var game_steps = 3000;
+  var game_end = 0;
+  var game_start = 0;
   var is_game = false;
   var is_autostimulated = false;
   var step_pulse = 0;
@@ -49,10 +51,10 @@ window.onload = function () {
   var inv_sf = 1/sampling_freq;
 
   var setDefaultValues = function() {
-    document.getElementById("K").value = "2.0";
-    document.getElementById("noise_strength").value = "5.0";
-    document.getElementById("dbs_strength").value = "1.0";
-    document.getElementById("w_mean").value = "64.0"; // "32.0";
+    document.getElementById("K").value = "1.75";
+    document.getElementById("noise_strength").value = "0.5";
+    document.getElementById("dbs_strength").value = "0.5";
+    document.getElementById("w_mean").value = "32.0"; // "32.0";
     document.getElementById("w_std").value = "2.0";
     document.getElementById("num_nodes").value = "10";
     document.getElementById("sampling_freq").value = "2048";
@@ -71,6 +73,10 @@ window.onload = function () {
     return ((x % y) + y ) % y;
   }
 
+  var randn = function(mean, std) {
+    return mean + std*((Math.random() + Math.random() + Math.random() + Math.random() + Math.random() + Math.random()) - 3) * Math.sqrt(2);
+  }
+
   var drawAnimation = function() {
     var dbs_patient = document.getElementById("dbs_patient");
     ctx.drawImage(dbs_patient,centerX * 2,centerY / 2.5, 150, 192);
@@ -83,6 +89,7 @@ window.onload = function () {
   var drawCircle = function(radius) {
     ctx.textAlign="center";
     ctx.textBaseline="middle";
+    ctx.font="24px Arial";
 
     // draw circle
     ctx.beginPath();
@@ -95,7 +102,7 @@ window.onload = function () {
     ctx.beginPath();
     ctx.arc(centerX, centerY, radius, 0, Math.PI);
     ctx.stroke();
-    ctx.fillStyle = "#90EE90"; // light green
+    ctx.fillStyle = "#F08080"; // coral
     ctx.fill();
     ctx.closePath();
 
@@ -103,7 +110,7 @@ window.onload = function () {
     ctx.beginPath();
     ctx.arc(centerX, centerY, radius, Math.PI, 2 * Math.PI);
     ctx.stroke();
-    ctx.fillStyle = "#F08080"; // coral
+    ctx.fillStyle = "#90EE90"; // light green
     ctx.fill();
     ctx.closePath();
 
@@ -114,8 +121,8 @@ window.onload = function () {
     labels = [0, 90, 180, 270];
     // off_x = [+5, 0, -10, 0];
     // off_y = [0, +10, 0, -5];
-    var off_x = [+5, 0, -10, 0];
-    var off_y = [0, +5, 0, -8];
+    var off_x = [+10, 0, -25, 0];
+    var off_y = [0, +15, 0, -15];
     for (i = 0; i < phases.length; i++) {
       var x0 = centerX + radius * Math.cos(phases[i]);
       var y0 = centerY + radius * Math.sin(phases[i]);
@@ -134,13 +141,13 @@ window.onload = function () {
     // add text to bottom-half circle
     ctx.beginPath();
     ctx.fillStyle = "black";
-    ctx.fillText("Speed Up",centerX,centerY+radius/2);
+    ctx.fillText("Slow Down",centerX,centerY+radius/2);
     ctx.closePath();
 
     // add text to top-half circle
     ctx.beginPath();
     ctx.fillStyle = "black";
-    ctx.fillText("Slow Down",centerX,centerY-radius/2);
+    ctx.fillText("Speed Up",centerX,centerY-radius/2);
     ctx.closePath();
   }
   
@@ -187,9 +194,8 @@ window.onload = function () {
       converged = true;
     }
 
-    var psi = Math.atan2(sum.sin,sum.cos);
+    var psi = modulo(Math.atan2(sum.sin,sum.cos), 2*Math.PI);
     if (is_autostimulated) {
-      var phase = modulo(psi, 2*Math.PI);
       is_stimulated = false;
 
       if (step/sampling_freq - last_stim_time > stim_step) {
@@ -197,7 +203,7 @@ window.onload = function () {
           is_stimulated = 1;
         }
         else {
-          if (Math.abs(phase-phase_to_stim) < 0.1) {
+          if (Math.abs(psi-phase_to_stim) < 0.1) {
             in_stim_block = true;
             is_stimulated = 1;
           }
@@ -228,8 +234,8 @@ window.onload = function () {
     for (var x = 0; x < ns.length; x++) {
       var dthdt = ns[x].weight + K * r * Math.sin(psi - ns[x].phase);
       newNodes.push({phase: (ns[x].phase + dthdt * inv_sf 
-      + noise_strength * (Math.random() - 0.5) * Math.sqrt(inv_sf) 
-      + ns[x].dbs_strength * dbs_strength * Math.sin(ns[x].phase) * is_stimulated), 
+      + noise_strength * randn(0,Math.sqrt(inv_sf))
+      + ns[x].dbs_strength * dbs_strength * (-Math.sin(ns[x].phase)) * is_stimulated), 
       weight: ns[x].weight,
       dbs_strength: ns[x].dbs_strength});
     }
@@ -432,7 +438,7 @@ window.onload = function () {
     num_pulses = parseFloat(document.getElementById("num_pulses").value);
     pulse_freq = parseFloat(document.getElementById("pulse_freq").value);
     phase_to_stim = parseFloat(document.getElementById("phase_to_stim").value);
-    document.getElementById("time").value = "N/A";
+    document.getElementById("time").innerHTML = "N/A";
     updateStimOptions();
     stim_step = 1/pulse_freq;
     inv_sf = 1/sampling_freq;
@@ -458,7 +464,7 @@ window.onload = function () {
       function timer() {
           // get the number of seconds that have elapsed since 
           // startTimer() was called
-          diff = duration - (((Date.now() - start) / 1000) | 0);
+          diff = duration - (((Date.now() - start) / 1000));
 
           // does the same job as parseInt truncates the float
           minutes = (diff / 60) | 0;
@@ -477,13 +483,14 @@ window.onload = function () {
       };
       // we don't want to wait a full second before the timer starts
       timer();
-      setInterval(timer, 1000);
   };
 
   var id = setInterval(function () {
-    if (is_game && step > game_steps) {
+    var curr_time = Date.now();
+    if (is_game && curr_time > game_end) {
       document.getElementById("reset").disabled = false;
       document.getElementById("play").disabled = false;
+      document.getElementById("time").innerHTML = "N/A";
       return;
     }
     drawNodes(nodes);
@@ -493,10 +500,17 @@ window.onload = function () {
       updateGraph();
       var sum = getSum(nodes);
     }
+    step++;
     if (is_game) {
       document.getElementById("iterations").innerHTML =  "Points: " + Math.round(points);
+      var time_left = game_end - Date.now();
+      var min = Math.round(time_left / Math.pow(10,6));
+      var sec = Math.round(time_left / Math.pow(10,3) - min * Math.pow(10,6));
+        min = min < 10 ? "0" + min : min;
+        sec = sec < 10 ? "0" + sec : sec;
+      document.getElementById("time").innerHTML = min + ":" + sec;
     } else {
-      document.getElementById("iterations").innerHTML = "Step: " + step++;
+      // document.getElementById("iterations").innerHTML = "Step: " + step;
     }
   }, 1);
   
@@ -527,9 +541,10 @@ window.onload = function () {
     document.getElementById("play").disabled = true;
     setDefaultValues();
     resetSim();
-    var one_min = 60;
-    var display = document.querySelector('#time');
-    startTimer(one_min, display);
+    game_start = Date.now();
+    game_end = game_start + time_for_game * 1000;
+    // var display = document.querySelector('#time');
+    // startTimer(time_for_game, display);
   }, false);
 
   document.getElementById("autostimulate").addEventListener("click", function () {

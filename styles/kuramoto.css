@@ -96,23 +96,23 @@ input[type=checkbox] {
 
 .left-col {
     float: left;
-    width: 25%;
+    width: 33%;
 }
 
 .center-col {
     float: left;
-    width: 25%;
+    width: 33%;
 }
 
 .right-col {
     float: left;
-    width: 25%;
+    width: 33%;
 }
-
+/*
 .last-col {
     float: left;
     width: 25%;
-}
+}*/
 
 .legend table {
     border-spacing: 5px;

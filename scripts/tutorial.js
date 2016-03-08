@@ -12,13 +12,14 @@ window.onload = function () {
         var centerY = canvas.height / 2;
         ctx.textAlign="center";
         ctx.textBaseline="middle";
+        ctx.font="24px Arial";
 
         if (c === dbs_c) {
             // draw bottom-half circle
             ctx.beginPath();
             ctx.arc(centerX, centerY, radius, 0, Math.PI);
             ctx.stroke();
-            ctx.fillStyle = "#90EE90"; // light green
+            ctx.fillStyle = "#F08080"; // coral
             ctx.fill();
             ctx.closePath();
 
@@ -26,7 +27,7 @@ window.onload = function () {
             ctx.beginPath();
             ctx.arc(centerX, centerY, radius, Math.PI, 2 * Math.PI);
             ctx.stroke();
-            ctx.fillStyle = "#F08080"; // coral
+            ctx.fillStyle = "#90EE90"; // light green
             ctx.fill();
             ctx.closePath();
 
@@ -43,10 +44,8 @@ window.onload = function () {
         // draw compass lines
         phases = [0, Math.PI / 2, Math.PI, Math.PI * 3 / 2];
         labels = [0, 90, 180, 270];
-        // off_x = [+5, 0, -10, 0];
-        // off_y = [0, +10, 0, -5];
-        var off_x = [+5, 0, -10, 0];
-        var off_y = [0, +8, 0, -8];
+        var off_x = [+10, 0, -25, 0];
+        var off_y = [0, +15, 0, -15];
         for (i = 0; i < phases.length; i++) {
             var x0 = centerX + radius * Math.cos(phases[i]);
             var y0 = centerY + radius * Math.sin(phases[i]);
@@ -66,13 +65,13 @@ window.onload = function () {
             // add text to bottom-half circle
             ctx.beginPath();
             ctx.fillStyle = "black";
-            ctx.fillText("Speed Up",centerX,centerY+radius/2);
+            ctx.fillText("Slow Down",centerX,centerY+radius/2);
             ctx.closePath();
 
             // add text to top-half circle
             ctx.beginPath();
             ctx.fillStyle = "black";
-            ctx.fillText("Slow Down",centerX,centerY-radius/2);
+            ctx.fillText("Speed Up",centerX,centerY-radius/2);
             ctx.closePath();
         }
     };
@@ -142,17 +141,25 @@ window.onload = function () {
         return sum;
     }
 
+    var modulo = function(x, y) {
+    return ((x % y) + y ) % y;
+    }
+
+    var randn = function(mean, std) {
+    return mean + std*((Math.random() + Math.random() + Math.random() + Math.random() + Math.random() + Math.random()) - 3) * Math.sqrt(2);
+    }
+
     var updateNodes = function(ns, K, noise_strength, dbs_strength, is_stimulated, inv_sf, step, stim_step) {    
         var sum = getSum(ns);
 
         r = Math.sqrt(Math.pow(sum.sin,2) + Math.pow(sum.cos,2));
-        var psi = Math.atan2(sum.sin,sum.cos);
+        var psi = modulo(Math.atan2(sum.sin,sum.cos),2*Math.PI);
         var newNodes = [];
         for (var x = 0; x < ns.length; x++) {
           var dthdt = ns[x].weight + K * r * Math.sin(psi - ns[x].phase);
           newNodes.push({phase: (ns[x].phase + dthdt * inv_sf 
-            + noise_strength * (Math.random() - 0.5) * Math.sqrt(inv_sf) 
-            + dbs_strength * Math.sin(ns[x].phase) * is_stimulated * (step % stim_step == 0)), 
+            + noise_strength * randn(0,Math.sqrt(inv_sf)) 
+            + dbs_strength * (-Math.sin(ns[x].phase)) * is_stimulated * (step % stim_step == 0)), 
             weight: ns[x].weight});
           
         }
@@ -173,7 +180,7 @@ window.onload = function () {
     var K = 10.0;
     var w_mean = 32;
     var w_std = 2;
-    var noise_strength = 5.0;
+    var noise_strength = 1.0;
     var dbs_strength = 0.5;
     var inv_sf = 1/2048;
     var num_nodes = 10;

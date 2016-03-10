@@ -219,7 +219,6 @@ window.onload = function () {
           in_stim_block = false;
         }
       }
-
     }
 
     if (should_stimulate) {
@@ -228,6 +227,9 @@ window.onload = function () {
         is_stimulated = 1;
         last_stim_time = step/sampling_freq;
       } 
+    }
+    else {
+      is_stimulated = 0;
     }
 
     var newNodes = [];

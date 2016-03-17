@@ -51,10 +51,10 @@ window.onload = function () {
   var inv_sf = 1/sampling_freq;
 
   var setDefaultValues = function() {
-    document.getElementById("K").value = "1.0";
+    document.getElementById("K").value = "5.0";
     document.getElementById("noise_strength").value = "0.5";
-    document.getElementById("dbs_strength").value = "0.5";
-    document.getElementById("w_mean").value = "32.0"; // "32.0";
+    document.getElementById("dbs_strength").value = "1.0";
+    document.getElementById("w_mean").value = "48.0"; // "32.0";
     document.getElementById("w_std").value = "2.0";
     document.getElementById("num_nodes").value = "10";
     document.getElementById("sampling_freq").value = "2048";

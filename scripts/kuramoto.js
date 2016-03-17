@@ -220,16 +220,17 @@ window.onload = function () {
         }
       }
     }
-
-    if (should_stimulate) {
-      is_stimulated = 0;
-      if (step/sampling_freq - last_stim_time > stim_step) {
-        is_stimulated = 1;
-        last_stim_time = step/sampling_freq;
-      } 
-    }
     else {
-      is_stimulated = 0;
+      if (should_stimulate) {
+        is_stimulated = 0;
+        if (step/sampling_freq - last_stim_time > stim_step) {
+          is_stimulated = 1;
+          last_stim_time = step/sampling_freq;
+        } 
+      }
+      else {
+        is_stimulated = 0;
+      }
     }
 
     var newNodes = [];

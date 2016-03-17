@@ -196,7 +196,7 @@ window.onload = function () {
 
     var psi = modulo(Math.atan2(sum.sin,sum.cos), 2*Math.PI);
     if (is_autostimulated) {
-      is_stimulated = false;
+      is_stimulated = 0;
 
       if (step/sampling_freq - last_stim_time > stim_step) {
         if (in_stim_block) {

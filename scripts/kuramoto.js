@@ -66,6 +66,7 @@ window.onload = function () {
     document.getElementById("stim_option_uniform").checked = true;
     document.getElementById("stim_option_half").checked = false;
     document.getElementById("stim_option_random").checked = false;
+    document.getElementById("stim_option_half_and_random").checked = false;
     //var params = document.getElementsByClassName("parameter");
   };
 
@@ -282,6 +283,14 @@ window.onload = function () {
           }
           else {
             s = 1;
+          }
+          break;
+        case "half_and_random":
+          if (x < num_nodes/2) {
+            s = 0;
+          }
+          else {
+            s = Math.random();
           }
           break;
         case "random":
